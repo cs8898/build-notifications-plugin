@@ -156,16 +156,34 @@ public abstract class BaseNotifier extends Notifier {
         target = this.successfulTarget;
         break;
     }
+    
+    // if status was not set
+    // set global status
     if (target == null || target.isEmpty()) {
       if (status != BuildStatus.SUCCESSFUL || sendIfSuccess) {
         target = this.globalTarget;
       }
     }
-    if (target != null && !target.isEmpty()) {
-      Message message = createMessage(target, build, launcher, listener);
+    
+    logger.info("Status=" + status + "; sendIfSuccess="+sendIfSuccess);
+    // do not send success if flag not set
+    if (status == BuildStatus.SUCCESSFUL && !sendIfSuccess) {
+      return true;
+    }
+    
+    // allow to send to null target
+    if (target != null && target.trim().isEmpty()) {
+      target = null;
+    }
+    
+    
+    // but check if message was builded
+    Message message = createMessage(target, build, launcher, listener);
+    if(null != message){
       BuildNotifier notifier = createNotifier(build, message);
       notifier.sendNotification();
     }
+
     return true;
   }
 
